@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+</head>
+<body>
+  <form>
+    <label>価格<input type="text" name="price" id="price"></label><br>
+    <label>1000円券<input type="text" name="ticket1000" id="ticket1000"></label><br>
+    <label>500円券<input type="text" name="ticket500" id="ticket500"></label><br>
+    <label>100円券<input type="text" name="ticket100" id="ticket100"></label><br>
+    <div id="calc" style="background-color: yellow; width: 300px; text-align:center;">計算</div>
+  </form>  
+  <script>
+    ticket_price = [1000,500,100];
+
+    //回答はグローバル
+    result_price = -1;
+    result_using = [-1,-1,-1];
+
+    const btn = document.getElementById('calc');
+    btn.addEventListener('click', function(){
+      const price = parseInt(document.getElementById('price').value);
+      const tickets = [ document.getElementById('ticket1000').value ,
+                        document.getElementById('ticket500').value ,
+                        document.getElementById('ticket100').value 
+      ];
+
+
+      console.log('価格：'+price);
+      for(let i=0;i<ticket_price.length;i++){
+        if(tickets[i] == ''){
+          tickets[i] = 0;
+        }
+        else {
+          tickets[i] = parseInt(tickets[i]);
+        }
+        //console.log(ticket_price[i]+'円券：' + tickets[i]);
+      }
+
+      //エラー処理
+      if(price < 0){
+        return error();
+      }
+      for(let i=0;i<ticket_price[i];i++){
+        if(tickets[i]<0){
+          return error();
+        }
+      }
+
+      //計算開始
+      reset_calc();
+      calc(price, tickets);
+    }, false);
+
+    //エラー処理
+    error = function(){
+      console.log('エラーです。');
+
+      return '';
+    };
+
+    //数値を初期化
+    reset_calc = function(){
+      result_price = -1;
+      for(let i=0;i<ticket_price.length;i++){
+        result_using[i] = -1;
+      }
+    };
+
+    calc_node = function(price, tickets, using){
+      //tickets: 所持チケット
+      //using  : 使用チケット
+
+      //現在の数値を計算
+      let result = 0;
+
+      for(let i = 0;i<ticket_price.length;i++){
+        result += ticket_price[i] * using[i];
+      }
+      //console.log('現在の数値：'+ result);
+      //計算終了
+
+      //比較して結果が良ければ書き込み（ただし結果が合計金額を超えない場合に限る）
+      if(result > result_price && result <= price){
+        result_price = result;
+        for(let i=0;i<ticket_price.length;i++){
+          result_using[i] = using[i];
+        }
+      }
+
+      //もしチケットを使えるなら次のチケットを使う
+      for(let i = 0; i<ticket_price.length; i++){
+        //チケットが残っていれば追加
+        //バグ：本来はチケットを使った結果、合計金額を超える場合は使用しないはずだが、なぜか実行されてしまう。
+        if(tickets[i] - using[i] > 0 && result + ticket_price[i] <= price){
+          //チケットの個数をnow_ticketsにコピー
+          let now_tickets = using;
+          now_tickets[i]++;
+
+          //再帰処理
+          calc_node(price, tickets, now_tickets);
+        } 
+      }
+    };
+
+    calc = function(price, tickets){
+      let start_tickets = [];
+
+      //0で初期化
+      for(let i = 0 ;i<ticket_price.length;i++){
+        start_tickets.push(0);
+      }
+      //計算開始
+      calc_node(price, tickets, start_tickets);
+
+      console.log( price + '円 - '+ result_price + '円 = ' +(price - result_price)+'円');
+      //console.log(result_using);
+      for(let i=0;i<ticket_price.length;i++){
+        console.log(ticket_price[i]+'円券：'+result_using[i]+'枚');
+      }
+
+      let result = {
+        price: result_price,
+        usingTickets: result_using
+      }; 
+
+      return result;
+    };
+
+
+  </script>
+</body>
+</html>
